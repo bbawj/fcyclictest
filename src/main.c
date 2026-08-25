@@ -8,7 +8,7 @@
 #ifndef FULL_DEMO
 int main(void) {
   FCYC_print("Running basic demo\n");
-  vFCYC_init();
+  vFCYC_init(100, 100);
   vTaskStartScheduler();
 
   for (;;)
@@ -104,7 +104,7 @@ int main(void) {
   xTaskCreateStatic(prvCheckTask, "check", configMINIMAL_STACK_SIZE, NULL, 1,
                     xStack, &xTaskBuffer);
 
-  vFCYC_init();
+  vFCYC_init(100, 100);
   vTaskStartScheduler();
 
   for (;;)

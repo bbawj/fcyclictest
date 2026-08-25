@@ -4,13 +4,14 @@ Basic port of a [cyclictest-like](https://git.kernel.org/pub/scm/utils/rt-tests/
 
 ## Getting Started
 
-The code is organised as a header-only library exposing FCYC_init to create the benchmarking and summary tasks. Include it in your existing application to begin profiling. A basic main.c would look as follows:
+The code is organised as a header-only library exposing vFCYC_init to create the benchmarking and summary tasks. Include it in your existing application to begin profiling. A basic main.c would look as follows:
 ```c
 #define FCYC_IMPLEMENTATION
 #include "fcyc.h"
 
 int main(void) {
-  FCYC_init();
+  // run for 100 iterations with 10ms between each task execution
+  vFCYC_init(100, 10);
   vTaskStartScheduler();
 
   for (;;)
@@ -33,10 +34,13 @@ make run
 # Example output
 Running full demo
 FCYC_init called
-isr_max lat:13500ns isr_min lat:12200ns task_max lat:18100ns task_min lat:14900ns
-isr_max lat:13500ns isr_min lat:12200ns task_max lat:18100ns task_min lat:14400ns
-isr_max lat:13500ns isr_min lat:12200ns task_max lat:18100ns task_min lat:14400ns
-isr_max lat:13500ns isr_min lat:12200ns task_max lat:18100ns task_min lat:14200ns
+Iterations: 100
+isr_max lat:13400ns isr_min lat:12200ns task_max lat:18400ns task_min lat:14200ns
+[14200,15000]: ***********************
+[15300,16100]: *************************************************
+[16400,17200]: **********
+[17300,18100]: *****************
+[18300,18400]: **
 ```
 
 ## Description
