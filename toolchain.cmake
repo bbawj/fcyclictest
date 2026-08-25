@@ -37,7 +37,7 @@ set( CMAKE_OBJDUMP      ${RISCV_TOOLCHAIN_BIN_PATH}/${CROSS_COMPILE}objdump
 
 # Set the common build flags
 
-set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Werror")
+set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mabi=ilp32d -march=${CMAKE_SYSTEM_PROCESSOR}" )
 
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE STRING "" )

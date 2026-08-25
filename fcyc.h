@@ -10,7 +10,8 @@
 #define FCYC_putchar(x) FCYC_putchar(x)
 #endif
 
-void FCYC_init(void);
+void vFCYC_init(void);
+void vFCYCTickHook(void);
 
 #endif
 
@@ -120,7 +121,7 @@ static void vSummaryFunction(void *pvParameters) {
   }
 }
 
-void vApplicationTickHook(void) {
+void vFCYCTickHook(void) {
   FCYC_gxData.isr = FCYC_get_mtime();
   FCYC_gxData.count += 1;
   if (FCYC_gxData.count == FCYC_gxInterval) {
@@ -131,16 +132,14 @@ void vApplicationTickHook(void) {
   }
 }
 
-void FCYC_init(void) {
+void vFCYC_init(void) {
   static StaticTask_t xTaskBuffer[2];
   static StackType_t xStack[2][configMINIMAL_STACK_SIZE];
 
-  FCYC_print("Starting main:\n");
+  FCYC_print("FCYC_init called\n");
   FCYC_gxInterval = pdMS_TO_TICKS(100);
   FCYC_gxIntervalMTIME =
       (configCPU_CLOCK_HZ / (uint64_t)configTICK_RATE_HZ) * FCYC_gxInterval;
-  FCYC_print_num(FCYC_gxIntervalMTIME);
-  FCYC_print("\n");
   FCYC_gxData.start = FCYC_get_mtime() + FCYC_gxIntervalMTIME;
   FCYC_gxData.isr_min = ~0;
   FCYC_gxData.task_min = ~0;

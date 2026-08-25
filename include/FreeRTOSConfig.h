@@ -79,7 +79,10 @@
 #define configSUPPORT_STATIC_ALLOCATION 1
 #define configKERNEL_PROVIDED_STATIC_MEMORY 1
 
-#define configUSE_TIMERS 0
+#define configUSE_TIMERS 1
+#define configTIMER_TASK_PRIORITY 1
+#define configTIMER_QUEUE_LENGTH 5
+#define configTIMER_TASK_STACK_DEPTH (110)
 #define configUSE_TASK_NOTIFICATIONS 1
 #define configTASK_NOTIFICATION_ARRAY_ENTRIES 3
 
@@ -101,6 +104,7 @@ to exclude the API function. */
 #define INCLUDE_xTaskAbortDelay 1
 #define INCLUDE_xTaskGetCurrentTaskHandle 1
 #define INCLUDE_xTaskGetHandle 1
+#define INCLUDE_xTimerPendFunctionCall 1
 
 #define configUSE_STATS_FORMATTING_FUNCTIONS 0
 

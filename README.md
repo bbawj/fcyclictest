@@ -19,15 +19,24 @@ int main(void) {
 }
 ```
 
-To test the provided application, compile with cmake giving a path to your toolchain:
+To test the provided application, compile with cmake giving a path to your toolchain and whether to use the FULL_DEMO option.
 ```bash
-cmake -DTOOLCHAIN_PATH="/opt/riscv/bin" -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake -B build
+cmake -DFULL_DEMO=ON -DTOOLCHAIN_PATH="/opt/riscv/bin" -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake -B build
 ```
 
 Run with qemu:
 ```
 cd build
+
 make run
+
+# Example output
+Running full demo
+FCYC_init called
+isr_max lat:13500ns isr_min lat:12200ns task_max lat:18100ns task_min lat:14900ns
+isr_max lat:13500ns isr_min lat:12200ns task_max lat:18100ns task_min lat:14400ns
+isr_max lat:13500ns isr_min lat:12200ns task_max lat:18100ns task_min lat:14400ns
+isr_max lat:13500ns isr_min lat:12200ns task_max lat:18100ns task_min lat:14200ns
 ```
 
 ## Description

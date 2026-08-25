@@ -9,14 +9,14 @@ FetchContent_Declare( freertos_kernel
 add_library(freertos_config INTERFACE)
 
 target_include_directories(freertos_config SYSTEM
-INTERFACE
-    include
-    .
+  INTERFACE
+  .
+  include
 )
 
 target_compile_definitions(freertos_config
   INTERFACE
-    projCOVERAGE_TEST=0
+  projCOVERAGE_TEST=0
 )
 
 set( FREERTOS_HEAP "4" CACHE STRING "" FORCE)
@@ -31,7 +31,7 @@ endif()
 FetchContent_MakeAvailable(freertos_kernel)
 
 add_executable(${PROJECT_NAME} 
-    src/main.c
+  src/main.c
 )
 
 target_sources(${PROJECT_NAME} PRIVATE
@@ -40,8 +40,8 @@ target_sources(${PROJECT_NAME} PRIVATE
 
 # 6. Link FreeRTOS kernel and configuration libraries to your app
 target_link_libraries(${PROJECT_NAME} PRIVATE 
-    freertos_kernel
-    freertos_config
+  freertos_kernel
+  freertos_config
 )
 
 # 7. Add RISC-V specific compiler/linker flags
@@ -63,3 +63,31 @@ add_custom_target(run
   DEPENDS ${PROJECT_NAME}
   VERBATIM
 )
+
+option (FULL_DEMO "Bring in the full demo suite from FreeRTOS demo commons" OFF)
+
+if (FULL_DEMO)
+  FetchContent_Declare(freertos_demos
+    GIT_REPOSITORY https://github.com/FreeRTOS/FreeRTOS.git
+    GIT_TAG        main
+    GIT_SHALLOW    TRUE
+    GIT_SUBMODULES ""
+  )
+  FetchContent_MakeAvailable(freertos_demos)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC -DFULL_DEMO=1)
+  target_include_directories(${PROJECT_NAME} PUBLIC
+    ${freertos_demos_SOURCE_DIR}/FreeRTOS/Demo/Common/include
+    ${freertos_demos_SOURCE_DIR}/FreeRTOS/Demo/ThirdParty/Template
+  )
+  set(DEMO_SRCS 
+    ${freertos_demos_SOURCE_DIR}/FreeRTOS/Demo/Common/Minimal/TaskNotify.c
+    ${freertos_demos_SOURCE_DIR}/FreeRTOS/Demo/Common/Minimal/EventGroupsDemo.c
+    ${freertos_demos_SOURCE_DIR}/FreeRTOS/Demo/Common/Minimal/TimerDemo.c
+    ${freertos_demos_SOURCE_DIR}/FreeRTOS/Demo/Common/Minimal/blocktim.c
+    ${freertos_demos_SOURCE_DIR}/FreeRTOS/Demo/Common/Minimal/dynamic.c
+    ${freertos_demos_SOURCE_DIR}/FreeRTOS/Demo/Common/Minimal/recmutex.c
+  )
+  file(GLOB TP_SRCS ${freertos_demos_SOURCE_DIR}/FreeRTOS/Demo/ThirdParty/*.c)
+  target_sources(${PROJECT_NAME} PUBLIC ${DEMO_SRCS} ${TP_SRCS})
+endif()
+
