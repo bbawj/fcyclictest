@@ -4,7 +4,7 @@ include(FetchContent)
 
 FetchContent_Declare( freertos_kernel
   GIT_REPOSITORY https://github.com/FreeRTOS/FreeRTOS-Kernel.git
-  GIT_TAG        main #Note: Best practice to use specific git-hash or tagged version
+  GIT_TAG        main
 )
 add_library(freertos_config INTERFACE)
 
@@ -20,9 +20,7 @@ target_compile_definitions(freertos_config
 )
 
 set( FREERTOS_HEAP "4" CACHE STRING "" FORCE)
-# Select the native compile PORT
 set( FREERTOS_PORT "GCC_POSIX" CACHE STRING "" FORCE)
-# Select the cross-compile PORT
 if (CMAKE_CROSSCOMPILING)
   set(FREERTOS_PORT "GCC_RISC_V_GENERIC" CACHE STRING "" FORCE)
   set(FREERTOS_RISCV_EXTENSION "RISCV_MTIME_CLINT_no_extensions" CACHE STRING "" FORCE)
@@ -38,13 +36,11 @@ target_sources(${PROJECT_NAME} PRIVATE
   startup.S
 )
 
-# 6. Link FreeRTOS kernel and configuration libraries to your app
 target_link_libraries(${PROJECT_NAME} PRIVATE 
   freertos_kernel
   freertos_config
 )
 
-# 7. Add RISC-V specific compiler/linker flags
 target_compile_options(${PROJECT_NAME} PUBLIC 
   -O3
 )
