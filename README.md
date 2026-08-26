@@ -49,5 +49,14 @@ Benchmarks ISR service latency (time taken between interrupt trigger and ISR exe
 
 Additionally, a task is notified from the ISR, giving the combined task latency (interrupt service + ISR execution + task switch).
 
-The base application runs in QEMU with a specified `icount` `SHIFT` value to represent the time per instruction as `2^(SHIFT)` ns. This gives us a deterministic way to calculate latencies in the emulated hardware across different Host OS. The base application also does not include any additional tasks beyond the benchmark and summary tasks. Without the presence of load, the measurements are mostly of the scheduler overhead in performing context switches and does not include other sources such as external hardware interrupts and anything else that may occur on real systems.
+The base application runs in QEMU with a specified `icount` `SHIFT` value to represent the time per instruction as `2^(SHIFT)` ns. This gives us a deterministic way to calculate latencies in the emulated hardware across different Host OS. 
 
+### Full Demo
+The base application also does not include any additional tasks beyond the benchmark and summary tasks. Without the presence of load, the measurements are mostly of the scheduler overhead in performing context switches and does not include other sources such as external hardware interrupts and anything else that may occur on real systems.
+
+The `FULL_DEMO` option includes the standard FreeRTOS Demo tasks, attempting to simualte some load on the CPU.
+
+### TODOs
+
+- Priority parametrization
+- Measurement of periodic task switch time from software timer
