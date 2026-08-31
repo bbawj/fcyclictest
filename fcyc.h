@@ -6,24 +6,22 @@
 #include "task.h"
 
 #ifndef FCYC_putchar
-#define UART_BASE 0x10000000
-#define FCYC_putchar(x) FCYC_putchar(x)
+#define FCYC_putchar(x) (x)
 #endif
 
 // ulIterations is the number of iterations the task is executed before stopping
 // xInterval is the expected number of miliseconds between each task execution
-void vFCYC_init(unsigned long ulIterations, unsigned long ulInterval);
+void vFCYC_init(unsigned long ulIterations, unsigned long ulInterval,
+                TaskHandle_t vDoneCallback);
 void vFCYCTickHook(void);
+
+#ifndef FCYC_get_mtime
+#error "Please define FCYC_get_mtime"
+#endif
 
 #endif
 
 #ifdef FCYC_IMPLEMENTATION
-static int FCYC_putchar(int c) {
-  volatile uint8_t *uart = (volatile uint8_t *)UART_BASE;
-  *uart = c;
-  return 0;
-}
-
 static void FCYC_print(const char *s) {
   while (*s)
     FCYC_putchar(*s++);
@@ -44,23 +42,6 @@ static void FCYC_print_num(uint64_t n) {
     FCYC_putchar(buf[i]);
 
   return;
-}
-
-static uint64_t FCYC_get_mtime(void) {
-  uint64_t ullNextTime = 0ULL;
-  uint32_t ulCurrentTimeHigh, ulCurrentTimeLow;
-  volatile uint32_t *const pulTimeHigh =
-      (volatile uint32_t
-           *const)((configMTIME_BASE_ADDRESS) +
-                   4UL); /* 8-byte type so high 32-bit word is 4 bytes up. */
-  volatile uint32_t *const pulTimeLow =
-      (volatile uint32_t *const)(configMTIME_BASE_ADDRESS);
-  ulCurrentTimeHigh = *pulTimeHigh;
-  ulCurrentTimeLow = *pulTimeLow;
-  ullNextTime = (uint64_t)ulCurrentTimeHigh;
-  ullNextTime <<= 32ULL; /* High 4-byte word is 32-bits up. */
-  ullNextTime |= (uint64_t)ulCurrentTimeLow;
-  return ullNextTime;
 }
 
 #ifndef MAX_HIST
@@ -86,6 +67,8 @@ static volatile struct {
 static TickType_t FCYC_gxInterval;
 static uint64_t FCYC_gxIntervalMTIME;
 static TaskHandle_t FCYC_gxBenchTask;
+static BaseType_t xDone = pdFALSE;
+static TaskHandle_t FCYC_vDoneCallback = NULL;
 
 static void pvSort(uint64_t *arr, BaseType_t xLen) {
   configASSERT(xLen > 0);
@@ -184,12 +167,14 @@ static void vTaskFunction(void *pvParameters) {
     FCYC_gxData.start += FCYC_gxIntervalMTIME;
   }
 
-  static bool done = false;
-  if (!done) {
-    done = true;
-    FCYC_print("All iterations done\n");
-    pvPrintHist();
-  }
+  xDone = pdTRUE;
+  FCYC_print("All iterations done\n");
+  pvPrintHist();
+
+  if (FCYC_vDoneCallback != NULL)
+    xTaskNotifyGive(FCYC_vDoneCallback);
+
+  vTaskDelete(NULL);
 }
 
 static void vSummaryFunction(void *pvParameters) {
@@ -198,7 +183,10 @@ static void vSummaryFunction(void *pvParameters) {
   for (;;) {
     vTaskDelayUntil(&xLastWakeTime, xDelay);
     pvPrintSummary();
+    if (xDone == pdTRUE)
+      break;
   }
+  vTaskDelete(NULL);
 }
 
 void vFCYCTickHook(void) {
@@ -213,7 +201,8 @@ void vFCYCTickHook(void) {
   }
 }
 
-void vFCYC_init(unsigned long ulIterations, unsigned long ulInterval) {
+void vFCYC_init(unsigned long ulIterations, unsigned long ulInterval,
+                TaskHandle_t vDoneCallback) {
   static StaticTask_t xTaskBuffer[2];
   static StackType_t xStack[2][configMINIMAL_STACK_SIZE];
 
@@ -229,6 +218,7 @@ void vFCYC_init(unsigned long ulIterations, unsigned long ulInterval) {
   FCYC_gxBenchTask =
       xTaskCreateStatic(vTaskFunction, "bench", configMINIMAL_STACK_SIZE, NULL,
                         configMAX_PRIORITIES - 1, xStack[0], &xTaskBuffer[0]);
+  FCYC_vDoneCallback = vDoneCallback;
   xTaskCreateStatic(vSummaryFunction, "summary", configMINIMAL_STACK_SIZE, NULL,
                     configMAX_PRIORITIES - 2, xStack[1], &xTaskBuffer[1]);
 }

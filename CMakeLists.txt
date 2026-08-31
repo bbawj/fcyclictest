@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
 
 target_sources(${PROJECT_NAME} PRIVATE
   startup.S
+  src/riscv-virt.c
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE 
@@ -54,9 +55,16 @@ find_program(QEMU_EXECUTABLE NAMES qemu-system-riscv32)
 set(SHIFT "2" CACHE STRING "Sets the qemu 'icount' shift value to N; each instruction will take 2^N ns to complete.")
 
 add_custom_target(run
-  COMMAND ${QEMU_EXECUTABLE} -icount shift=${SHIFT} -machine virt -nographic -bios none -kernel ${PROJECT_NAME}
+  COMMAND ${QEMU_EXECUTABLE} -s -icount shift=${SHIFT} -machine virt -nographic -bios none -kernel ${PROJECT_NAME}
   COMMENT "Running QEMU..."
   DEPENDS ${PROJECT_NAME}
+  VERBATIM
+)
+
+find_program(GDB NAMES riscv32-unknown-elf-gdb PATHS "/opt/riscv/bin" ${TOOLCHAIN_PATH})
+add_custom_target(trace
+  COMMAND ${GDB} ${PROJECT_NAME} -ex "target remote localhost:1234" -ex "interrupt"
+  COMMENT "Dumping trace..."
   VERBATIM
 )
 
@@ -70,7 +78,7 @@ if (FULL_DEMO)
     GIT_SUBMODULES ""
   )
   FetchContent_MakeAvailable(freertos_demos)
-  target_compile_definitions(${PROJECT_NAME} PUBLIC -DFULL_DEMO=1)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC FULL_DEMO)
   target_include_directories(${PROJECT_NAME} PUBLIC
     ${freertos_demos_SOURCE_DIR}/FreeRTOS/Demo/Common/include
     ${freertos_demos_SOURCE_DIR}/FreeRTOS/Demo/ThirdParty/Template
@@ -87,3 +95,18 @@ if (FULL_DEMO)
   target_sources(${PROJECT_NAME} PUBLIC ${DEMO_SRCS} ${TP_SRCS})
 endif()
 
+option(FEATURE_TRACE "Enable tracing" OFF)
+if (FEATURE_TRACE)
+  FetchContent_Declare(tracer
+    GIT_REPOSITORY https://github.com/schilkp/Tonbandgeraet/
+    GIT_TAG        main
+    GIT_SHALLOW    TRUE
+  )
+  FetchContent_MakeAvailable(tracer)
+  target_compile_definitions(freertos_config INTERFACE FEATURE_TRACE)
+  target_include_directories(freertos_config INTERFACE
+    ${tracer_SOURCE_DIR}/tband/inc
+  )
+  file(GLOB TRC_SRCS ${tracer_SOURCE_DIR}/tband/src/*.c)
+  target_sources(${PROJECT_NAME} PUBLIC ${TRC_SRCS})
+endif()

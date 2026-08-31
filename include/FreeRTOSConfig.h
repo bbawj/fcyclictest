@@ -108,4 +108,19 @@ to exclude the API function. */
 
 #define configUSE_STATS_FORMATTING_FUNCTIONS 0
 
+void vAssertCalled(const char *pcFileName, uint32_t ulLine);
+#define configASSERT(x)                                                        \
+  if ((x) == 0)                                                                \
+    vAssertCalled(__FILE__, __LINE__);
+
+#ifdef FEATURE_TRACE
+#define tband_configFREERTOS_VERSION_MAJOR 12
+#ifndef __ASSEMBLER__
+#include "tband.h"
+#endif
+#endif
+
+#ifdef traceTASK_SWITCHED_IN
+#endif
+
 #endif /* FREERTOS_CONFIG_H */

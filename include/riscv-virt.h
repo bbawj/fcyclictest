@@ -29,6 +29,7 @@
 #define RISCV_VIRT_H_
 
 #include "riscv-reg.h"
+#include "stdint.h"
 
 #ifdef __ASSEMBLER__
 #define CONS(NUM, TYPE) NUM
@@ -43,12 +44,13 @@
 #define CLINT_MTIMECMP CONS(0x4000, UL)
 #define CLINT_MTIME CONS(0xbff8, UL)
 
-#define NS16550_ADDR CONS(0x10000000, UL)
+#define UART_BASE 0x10000000
 
 #ifndef __ASSEMBLER__
 
 int xGetCoreID(void);
-void vSendString(const char *s);
+int putchar(int c);
+uint64_t get_mtime(void);
 
 #endif /* __ASSEMBLER__ */
 
